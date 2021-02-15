@@ -12,13 +12,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import logging as log
+import logging
+import os.path
 from typing import Optional
-
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKeyWithSerialization
 from cryptography.exceptions import UnsupportedAlgorithm
-
 import mender.security.key as key
+
+log = logging.getLogger(__name__)
 
 
 def now(
@@ -40,6 +41,8 @@ def now(
             private_key = key_already_generated(private_key_path)
         if not private_key:
             log.info("Generating a new RSA key pair..")
+            if force_bootstrap and os.path.exists(private_key_path):
+                os.unlink(private_key_path)
             private_key = key.generate_key()
             key.store_key(private_key, private_key_path)
         log.info("Device bootstrapped successfully")

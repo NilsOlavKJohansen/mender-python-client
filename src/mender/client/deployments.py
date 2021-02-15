@@ -11,18 +11,20 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import logging as log
 from typing import Optional
 from typing import Dict
+import logging
+
 import os.path
 import time
 import re
-
 import requests
 
 import mender.settings.settings as settings
 import mender.log.log as menderlog
 from mender.client import HTTPUnathorized
+
+log = logging.getLogger(__name__)
 
 STATUS_SUCCESS = "success"
 STATUS_FAILURE = "failure"
@@ -78,7 +80,7 @@ def request(
             server_url + "/api/devices/v1/deployments/device/deployments/next",
             headers=headers,
             params=parameters,
-            verify=server_certificate if server_certificate else True,
+            verify=server_certificate or True,
         )
         log.debug(f"update: request: {r}")
         deployment_info = None
@@ -212,7 +214,7 @@ def download_and_resume(
                 update_url,
                 headers=req_headers,
                 stream=True,
-                verify=server_certificate if server_certificate else True,
+                verify=server_certificate or True,
             ) as response:
                 if not content_length:
                     content_length = int(str(response.headers.get("Content-Length")))
@@ -276,7 +278,7 @@ def report(
             + deployment_id
             + "/status",
             headers=headers,
-            verify=server_certificate if server_certificate else True,
+            verify=server_certificate or True,
             json={"status": status},
         )
         if response.status_code != 204:
@@ -301,7 +303,7 @@ def report(
                 + deployment_id
                 + "/log",
                 headers=headers,
-                verify=server_certificate if server_certificate else True,
+                verify=server_certificate or True,
                 json={"messages": logdata,},
             )
             if response.status_code != 204:

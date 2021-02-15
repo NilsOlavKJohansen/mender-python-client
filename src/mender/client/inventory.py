@@ -12,8 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import json
-import logging as log
+import logging
 import requests
+
+log = logging.getLogger(__name__)
 
 
 def request(
@@ -44,14 +46,14 @@ def request(
                 server_url + "/api/devices/v1/inventory/device/attributes",
                 headers=headers,
                 data=raw_data,
-                verify=server_certificate if server_certificate else True,
+                verify=server_certificate or True,
             )
         else:
             r = requests.put(
                 server_url + "/api/devices/v1/inventory/device/attributes",
                 headers=headers,
                 data=raw_data,
-                verify=server_certificate if server_certificate else True,
+                verify=server_certificate or True,
             )
 
     except (

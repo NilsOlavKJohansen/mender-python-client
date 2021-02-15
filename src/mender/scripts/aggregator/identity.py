@@ -13,7 +13,9 @@
 #    limitations under the License.
 
 import os
-import logging as log
+import logging
+
+log = logging.getLogger()
 
 from mender.scripts.aggregator.aggregator import ScriptKeyValueAggregator
 

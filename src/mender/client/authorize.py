@@ -12,13 +12,15 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import json
-import logging as log
+import logging
 from typing import Optional
-import requests
 
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKeyWithSerialization
+import requests
 
 import mender.security.key as key
+
+log = logging.getLogger(__name__)
 
 JWTToken = str
 
@@ -69,7 +71,7 @@ def authorize(
             server_url + "/api/devices/v1/authentication/auth_requests",
             data=raw_data,
             headers=headers,
-            verify=server_certificate if server_certificate else True,
+            verify=server_certificate or True,
         )
     except (
         requests.RequestException,
