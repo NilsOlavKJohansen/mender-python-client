@@ -11,7 +11,7 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import logging as log
+import logging
 import os
 import os.path
 import sys
@@ -30,6 +30,7 @@ import mender.scripts.artifactinfo as artifactinfo
 import mender.scripts.devicetype as devicetype
 import mender.scripts.runner as installscriptrunner
 import mender.settings.settings as settings
+import mender.log.rootlogger as rootlogger
 
 from mender.log.log import DeploymentLogHandler
 
@@ -57,10 +58,15 @@ def fixture_ctx():
 
 
 class TestStates:
+    @pytest.fixture(name="set_up_root_logger", autouse=True)
+    def fixture_setup_root_logger(self):
+        """Set the root logger and deployment handlar"""
+        rootlogger.setup_logger()
+
     @pytest.fixture(autouse=True)
     def set_log_level_info(self, caplog):
         """Set the log-level capture to info for all tests"""
-        caplog.set_level(log.DEBUG)
+        caplog.set_level(logging.DEBUG)
 
     def test_init(self, monkeypatch, caplog):
         with monkeypatch.context() as m:
@@ -109,6 +115,7 @@ class TestStates:
             m.setattr(inventory, "aggregate", lambda *args, **kwargs: None)
             m.setattr(client_inventory, "request", lambda *args, **kwargs: None)
             sync_inventory.run(ctx)
+
             assert "No inventory data found" in caplog.text
         # Inventory data
         with monkeypatch.context() as m:
@@ -188,6 +195,11 @@ class TestStates:
 
 
 class TestStateMachines:
+    @pytest.fixture(autouse=True)
+    def setup_root_logger(self):
+        """Set the root logger and deployment handlar"""
+        rootlogger.setup_logger()
+
     def test_master_init(self):
         m = statemachine.Master(force_bootstrap=False)
         assert m.context
@@ -195,22 +207,11 @@ class TestStateMachines:
         assert isinstance(m.unauthorized_machine, statemachine.UnauthorizedStateMachine)
         assert isinstance(m.authorized_machine, statemachine.AuthorizedStateMachine)
 
-    def test_master(self, ctx, monkeypatch):
+    def test_master(self, ctx):
         master = statemachine.Master(force_bootstrap=False)
-        with pytest.raises(AssertionError):
-            master.run(ctx)
-        with monkeypatch.context() as m:
-
-            class MockLogger:
-                handlers = [DeploymentLogHandler()]
-
-            def mock_get_logger(_):
-                return MockLogger()
-
-            m.setattr(log, "getLogger", mock_get_logger)
-            # Do not run the infinite loop
-            master.quit = True
-            master.run(ctx)
+        # Do not run the infinite loop
+        master.quit = True
+        master.run(ctx)
 
     def test_unathorized(self, ctx, monkeypatch):
         unauthorized_machine = statemachine.UnauthorizedStateMachine()

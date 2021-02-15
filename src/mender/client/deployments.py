@@ -11,18 +11,20 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
-import logging as log
 from typing import Optional
 from typing import Dict
+import logging
+
 import os.path
 import time
 import re
-
 import requests
 
 import mender.settings.settings as settings
 import mender.log.log as menderlog
 from mender.client import HTTPUnathorized
+
+log = logging.getLogger(__name__)
 
 STATUS_SUCCESS = "success"
 STATUS_FAILURE = "failure"

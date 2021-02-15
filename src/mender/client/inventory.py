@@ -12,8 +12,10 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 import json
-import logging as log
+import logging
 import requests
+
+log = logging.getLogger(__name__)
 
 
 def request(

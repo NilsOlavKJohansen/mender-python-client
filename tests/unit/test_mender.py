@@ -24,6 +24,7 @@ import mender.client.authorize as authorize
 import mender.client.deployments as deployments
 import mender.settings.settings as settings
 import mender.statemachine.statemachine as statemachine
+import mender.log.rootlogger as rootlogger
 
 from mender.log.log import DeploymentLogHandler
 
@@ -32,6 +33,12 @@ from mender.log.log import DeploymentLogHandler
 def set_log_level_info(caplog):
     """Set the log-level capture to info for all tests"""
     caplog.set_level(log.DEBUG)
+
+
+@pytest.fixture(autouse=True)
+def setup_root_logger():
+    """Set the root logger and deployment handlar"""
+    rootlogger.setup_logger()
 
 
 @pytest.fixture(name="ctx")
@@ -129,7 +136,7 @@ def test_report(args, ctx, caplog, tmpdir, monkeypatch):
         m.setattr(statemachine, "Context", lambda *args, **kwargs: ctx)
         m.setattr(authorize, "request", lambda *args, **kwargs: "JWTToken")
         m.setattr(args, "failure", True)
-        with pytest.raises(AssertionError):
+        with pytest.raises(SystemExit):
             main.report(args)
         assert "Reporting a failed update to the Mender server" in caplog.text
 
@@ -142,7 +149,7 @@ def test_report(args, ctx, caplog, tmpdir, monkeypatch):
         m.setattr(authorize, "request", lambda *args, **kwargs: "JWTToken")
         m.setattr(args, "failure", True)
         m.setattr(deployments, "report", lambda *args, **kwargs: False)
-        m.setattr(log, "getLogger", lambda name: MockLogger)
+        # m.setattr(log, "getLogger", lambda name: MockLogger)
         with pytest.raises(SystemExit):
             main.report(args)
         assert "Reporting a failed update to the Mender server" in caplog.text
